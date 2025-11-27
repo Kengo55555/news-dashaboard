@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>情報収集＆お気に入り Webアプリ（カスタマイズ対応）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background-color: #f5f5f7;
+      color: #222;
+    }
+    body {
+      margin: 0;
+      padding: 1rem;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      font-size: 1.4rem;
+    }
+    .description {
+      max-width: 900px;
+      margin: 0 auto 1rem;
+      font-size: 0.9rem;
+      color: #555;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+    .panel {
+      background: #fff;
+      border-radius: 0.75rem;
+      padding: 0.75rem 0.9rem 0.9rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      min-height: 280px;
+    }
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+    .panel-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    .panel-header button {
+      font-size: 0.8rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      border: 1px solid #ccc;
+      background: #fafafa;
+      cursor: pointer;
+    }
+    .panel-header button:hover {
+      background: #f0f0f0;
+    }
+    .meta {
+      font-size: 0.75rem;
+      color: #777;
+      margin-bottom: 0.4rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .status {
+      color: #999;
+    }
+
+    /* 本文は 左：ニュース、右：設定 */
+    .panel-body {
+      display: flex;
+      gap: 0.6rem;
+      flex: 1;
+      min-height: 200px;
+    }
+    .news-area {
+      flex: 2;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .config-area {
+      flex: 1;
+      min-width: 180px;
+      max-width: 220px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (max-width: 900px) {
+      .panel-body {
+        flex-direction: column;
+      }
+      .config-area {
+        max-width: none;
+      }
+    }
+
+    .config {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.3rem;
+      margin-bottom: 0.2rem;
+      padding: 0.35rem 0.4rem;
+      border-radius: 0.5rem;
+      background: #fafafa;
+      font-size: 0.75rem;
+    }
+    .config-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.1rem;
+    }
+    .config-row label {
+      color: #666;
+    }
+    .config-row input {
+      font-size: 0.78rem;
+      padding: 0.25rem 0.35rem;
+      border-radius: 0.35rem;
+      border: 1px solid #ccc;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .config-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.4rem;
+      margin-top: 0.1rem;
+    }
+    .config-actions button {
+      font-size: 0.8rem;
+      padding: 0.2rem 0.7rem;
+      border-radius: 999px;
+      border: 1px solid #bbb;
+      background: #fff;
+      cursor: pointer;
+    }
+    .config-actions button:hover {
+      background: #f0f0f0;
+    }
+    .config-note {
+      font-size: 0.7rem;
+      color: #888;
+      margin-top: 0.1rem;
+    }
+
+    .item-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      flex: 1;
+      overflow-y: auto;
+      max-height: 260px;
+    }
+    .item-list li {
+      font-size: 0.82rem;
+      padding: 0.3rem 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.4rem;
+    }
+    .item-main {
+      flex: 1;
+    }
+    .item-actions {
+      padding-top: 0.15rem;
+      white-space: nowrap;
+    }
+    .favorite-label {
+      font-size: 0.75rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .favorite-label input {
+      margin-right: 0.2rem;
+    }
+    .item-list a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    .item-list a:hover {
+      text-decoration: underline;
+    }
+    .item-date {
+      font-size: 0.7rem;
+      color: #999;
+      margin-top: 0.15rem;
+    }
+    .pagination {
+      margin-top: 0.35rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.25rem;
+      justify-content: flex-end;
+      font-size: 0.75rem;
+    }
+    .pagination button {
+      min-width: 1.6rem;
+      padding: 0.15rem 0.35rem;
+      border-radius: 0.45rem;
+      border: 1px solid #ddd;
+      background: #fafafa;
+      cursor: pointer;
+    }
+    .pagination button[disabled] {
+      background: #ddd;
+      cursor: default;
+    }
+    .pagination .side-btn {
+      min-width: 2.2rem;
+    }
+    .error {
+      font-size: 0.75rem;
+      color: #d00;
+      margin-top: 0.25rem;
+    }
+
+    /* お気に入り */
+    #favorites-section {
+      max-width: 1200px;
+      margin: 1.5rem auto 0;
+      background: #fff;
+      border-radius: 0.75rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      padding: 0.75rem 0.9rem 1rem;
+    }
+    #favorites-section h2 {
+      font-size: 1rem;
+      margin: 0 0 0.25rem;
+    }
+    #favorites-section .fav-meta {
+      font-size: 0.75rem;
+      color: #777;
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    #favorites-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      max-height: 260px;
+      overflow-y: auto;
+    }
+    #favorites-list li {
+      font-size: 0.82rem;
+      padding: 0.35rem 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+    #favorites-list .fav-main {
+      flex: 1;
+    }
+    #favorites-list .fav-meta-line {
+      font-size: 0.7rem;
+      color: #888;
+      margin-top: 0.15rem;
+    }
+    #favorites-list button {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      border: 1px solid #ccc;
+      background: #fafafa;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    #favorites-list button:hover {
+      background: #f0f0f0;
+    }
+    .small {
+      font-size: 0.72rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>定期情報収集＆お気に入りリスト（カスタマイズ可）</h1>
+  <p class="description">
+    ・4つのカテゴリごとにWeb情報（GoogleニュースRSS）から題目＆URLを取得して表示します。<br>
+    ・各カテゴリは20件ごとにページ分割されます。<br>
+    ・各パネル右側で「タイトル」と「検索キーワード」を任意に変更し、「更新」ボタンで反映できます。<br>
+    ・気になった記事にチェックを入れると「お気に入り」に追加され、ブラウザのローカルストレージに保存されます。<br>
+    ・自動更新は3時間ごとに行われます（ページを開いている間のみ）。<br>
+    ・「再読み込み」ボタンは、設定を変えずにニュースだけ取り直します。
+  </p>
+
+  <div class="grid">
+    <!-- 製造業向けAI実装事例 -->
+    <section class="panel" data-category-id="manufacturing_ai">
+      <div class="panel-header">
+        <div class="panel-title" data-title-label>製造業向けのAIの実装事例</div>
+        <button type="button" class="refresh-btn" data-category-id="manufacturing_ai">再読み込み</button>
+      </div>
+      <div class="meta">
+        <span>最終更新: <span class="last-updated">-</span></span>
+        <span class="status">読込待ち...</span>
+      </div>
+
+      <div class="panel-body">
+        <div class="news-area">
+          <ul class="item-list"></ul>
+          <div class="pagination"></div>
+          <div class="error"></div>
+        </div>
+        <div class="config-area">
+          <div class="config">
+            <div class="config-row">
+              <label>タイトル</label>
+              <input type="text" class="config-title-input" data-category-id="manufacturing_ai">
+            </div>
+            <div class="config-row">
+              <label>Googleニュース検索キーワード</label>
+              <input type="text" class="config-query-input" data-category-id="manufacturing_ai">
+            </div>
+            <div class="config-actions">
+              <button type="button" class="config-update-btn" data-category-id="manufacturing_ai">更新</button>
+            </div>
+            <div class="config-note">
+              ※「更新」で設定保存＋この条件でニュース取得
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- アクセンチュアの情報 -->
+    <section class="panel" data-category-id="accenture">
+      <div class="panel-header">
+        <div class="panel-title" data-title-label>アクセンチュアの情報</div>
+        <button type="button" class="refresh-btn" data-category-id="accenture">再読み込み</button>
+      </div>
+      <div class="meta">
+        <span>最終更新: <span class="last-updated">-</span></span>
+        <span class="status">読込待ち...</span>
+      </div>
+
+      <div class="panel-body">
+        <div class="news-area">
+          <ul class="item-list"></ul>
+          <div class="pagination"></div>
+          <div class="error"></div>
+        </div>
+        <div class="config-area">
+          <div class="config">
+            <div class="config-row">
+              <label>タイトル</label>
+              <input type="text" class="config-title-input" data-category-id="accenture">
+            </div>
+            <div class="config-row">
+              <label>Googleニュース検索キーワード</label>
+              <input type="text" class="config-query-input" data-category-id="accenture">
+            </div>
+            <div class="config-actions">
+              <button type="button" class="config-update-btn" data-category-id="accenture">更新</button>
+            </div>
+            <div class="config-note">
+              ※「更新」で設定保存＋この条件でニュース取得
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- AIツールの活用方法の紹介 -->
+    <section class="panel" data-category-id="ai_tools">
+      <div class="panel-header">
+        <div class="panel-title" data-title-label>AIツールの活用方法の紹介</div>
+        <button type="button" class="refresh-btn" data-category-id="ai_tools">再読み込み</button>
+      </div>
+      <div class="meta">
+        <span>最終更新: <span class="last-updated">-</span></span>
+        <span class="status">読込待ち...</span>
+      </div>
+
+      <div class="panel-body">
+        <div class="news-area">
+          <ul class="item-list"></ul>
+          <div class="pagination"></div>
+          <div class="error"></div>
+        </div>
+        <div class="config-area">
+          <div class="config">
+            <div class="config-row">
+              <label>タイトル</label>
+              <input type="text" class="config-title-input" data-category-id="ai_tools">
+            </div>
+            <div class="config-row">
+              <label>Googleニュース検索キーワード</label>
+              <input type="text" class="config-query-input" data-category-id="ai_tools">
+            </div>
+            <div class="config-actions">
+              <button type="button" class="config-update-btn" data-category-id="ai_tools">更新</button>
+            </div>
+            <div class="config-note">
+              ※「更新」で設定保存＋この条件でニュース取得
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 日経平均株価情報 -->
+    <section class="panel" data-category-id="nikkei">
+      <div class="panel-header">
+        <div class="panel-title" data-title-label>日経平均株価情報</div>
+        <button type="button" class="refresh-btn" data-category-id="nikkei">再読み込み</button>
+      </div>
+      <div class="meta">
+        <span>最終更新: <span class="last-updated">-</span></span>
+        <span class="status">読込待ち...</span>
+      </div>
+
+      <div class="panel-body">
+        <div class="news-area">
+          <ul class="item-list"></ul>
+          <div class="pagination"></div>
+          <div class="error"></div>
+        </div>
+        <div class="config-area">
+          <div class="config">
+            <div class="config-row">
+              <label>タイトル</label>
+              <input type="text" class="config-title-input" data-category-id="nikkei">
+            </div>
+            <div class="config-row">
+              <label>Googleニュース検索キーワード</label>
+              <input type="text" class="config-query-input" data-category-id="nikkei">
+            </div>
+            <div class="config-actions">
+              <button type="button" class="config-update-btn" data-category-id="nikkei">更新</button>
+            </div>
+            <div class="config-note">
+              ※「更新」で設定保存＋この条件でニュース取得
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- お気に入り -->
+  <section id="favorites-section">
+    <h2>お気に入りリスト</h2>
+    <div class="fav-meta">
+      <span id="favorites-count">0件</span>
+      <button type="button" id="clear-favorites-btn">すべて削除</button>
+    </div>
+    <ul id="favorites-list"></ul>
+  </section>
+
+  <script>
+    // ===== 設定 =====
+    const PAGE_SIZE = 20; // ★ 1ページ20件
+    const AUTO_REFRESH_INTERVAL_MS = 3 * 60 * 60 * 1000; // ★ 3時間
+    const FAVORITES_STORAGE_KEY = "webAppFavorites_v1";
+    const CATEGORY_SETTINGS_KEY = "webAppCategorySettings_v1";
+
+    // GoogleニュースRSS URLを作る
+    function buildGoogleNewsRss(query) {
+      return (
+        "https://news.google.com/rss/search?q=" +
+        encodeURIComponent(query) +
+        "&hl=ja&gl=JP&ceid=JP:ja"
+      );
+    }
+
+    function buildFeedUrl(rssUrl) {
+      const base = "https://api.rss2json.com/v1/api.json?rss_url=";
+      return base + encodeURIComponent(rssUrl);
+    }
+
+    // デフォルトカテゴリ定義
+    const CATEGORIES = {
+      manufacturing_ai: {
+        id: "manufacturing_ai",
+        label: "製造業向けのAIの実装事例",
+        defaultQuery: "製造業 AI 導入 事例",
+        query: "製造業 AI 導入 事例"
+      },
+      accenture: {
+        id: "accenture",
+        label: "アクセンチュアの情報",
+        defaultQuery: "アクセンチュア",
+        query: "アクセンチュア"
+      },
+      ai_tools: {
+        id: "ai_tools",
+        label: "AIツールの活用方法の紹介",
+        defaultQuery: "AI ツール 活用 事例",
+        query: "AI ツール 活用 事例"
+      },
+      nikkei: {
+        id: "nikkei",
+        label: "日経平均株価情報",
+        defaultQuery: "日経平均株価",
+        query: "日経平均株価"
+      }
+    };
+
+    // ===== 状態管理 =====
+    const state = {
+      categories: {
+        manufacturing_ai: { items: [], currentPage: 1 },
+        accenture: { items: [], currentPage: 1 },
+        ai_tools: { items: [], currentPage: 1 },
+        nikkei: { items: [], currentPage: 1 }
+      },
+      favorites: [] // {link, title, categoryId, pubDate}
+    };
+
+    // ===== localStorage: カテゴリ設定 =====
+    function loadCategorySettings() {
+      try {
+        const raw = localStorage.getItem(CATEGORY_SETTINGS_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== "object") return;
+
+        Object.keys(CATEGORIES).forEach(id => {
+          if (parsed[id]) {
+            if (parsed[id].label) {
+              CATEGORIES[id].label = parsed[id].label;
+            }
+            if (parsed[id].query) {
+              CATEGORIES[id].query = parsed[id].query;
+            }
+          }
+        });
+      } catch (e) {
+        console.warn("カテゴリ設定の読み込みに失敗しました", e);
+      }
+    }
+
+    function saveCategorySettings() {
+      const data = {};
+      Object.keys(CATEGORIES).forEach(id => {
+        data[id] = {
+          label: CATEGORIES[id].label,
+          query: CATEGORIES[id].query
+        };
+      });
+      try {
+        localStorage.setItem(CATEGORY_SETTINGS_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.warn("カテゴリ設定の保存に失敗しました", e);
+      }
+    }
+
+    // ===== localStorage: お気に入り =====
+    function loadFavorites() {
+      try {
+        const raw = localStorage.getItem(FAVORITES_STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          state.favorites = parsed;
+        }
+      } catch (e) {
+        console.warn("お気に入りの読み込みに失敗しました", e);
+      }
+    }
+
+    function saveFavorites() {
+      try {
+        localStorage.setItem(FAVORITES_STORAGE_KEY, JSON.stringify(state.favorites));
+      } catch (e) {
+        console.warn("お気に入りの保存に失敗しました", e);
+      }
+    }
+
+    // ===== DOM ヘルパー =====
+    function getPanelElement(categoryId) {
+      return document.querySelector(`.panel[data-category-id="${categoryId}"]`);
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      return d.toLocaleString("ja-JP");
+    }
+
+    // ===== レンダリング：カテゴリ =====
+    function renderCategory(categoryId) {
+      const panel = getPanelElement(categoryId);
+      if (!panel) return;
+
+      const listEl = panel.querySelector(".item-list");
+      const pagEl = panel.querySelector(".pagination");
+      const errorEl = panel.querySelector(".error");
+      const statusEl = panel.querySelector(".status");
+
+      const catState = state.categories[categoryId];
+      const items = catState.items || [];
+
+      errorEl.textContent = "";
+      statusEl.textContent = items.length === 0 ? "記事がありません" : "";
+
+      listEl.innerHTML = "";
+
+      const totalPages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
+      if (catState.currentPage > totalPages) {
+        catState.currentPage = totalPages;
+      }
+      const start = (catState.currentPage - 1) * PAGE_SIZE;
+      const pageItems = items.slice(start, start + PAGE_SIZE);
+
+      pageItems.forEach(item => {
+        const li = document.createElement("li");
+
+        const main = document.createElement("div");
+        main.className = "item-main";
+
+        const link = document.createElement("a");
+        link.href = item.link;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = item.title || "(無題)";
+
+        const date = document.createElement("div");
+        date.className = "item-date";
+        date.textContent = formatDate(item.pubDate);
+
+        main.appendChild(link);
+        if (item.pubDate) {
+          main.appendChild(date);
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "item-actions";
+        const label = document.createElement("label");
+        label.className = "favorite-label";
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "favorite-toggle";
+        checkbox.dataset.categoryId = categoryId;
+        checkbox.dataset.link = item.link;
+
+        if (state.favorites.some(f => f.link === item.link)) {
+          checkbox.checked = true;
+        }
+
+        checkbox.addEventListener("change", (e) => {
+          if (e.target.checked) {
+            addFavorite({
+              link: item.link,
+              title: item.title,
+              categoryId: categoryId,
+              pubDate: item.pubDate
+            });
+          } else {
+            removeFavoriteByLink(item.link);
+          }
+        });
+
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode("★ お気に入り"));
+        actions.appendChild(label);
+
+        li.appendChild(main);
+        li.appendChild(actions);
+        listEl.appendChild(li);
+      });
+
+      // ページネーション
+      pagEl.innerHTML = "";
+      if (totalPages > 1) {
+        const prevBtn = document.createElement("button");
+        prevBtn.textContent = "‹";
+        prevBtn.className = "side-btn";
+        prevBtn.disabled = catState.currentPage === 1;
+        prevBtn.addEventListener("click", () => {
+          if (catState.currentPage > 1) {
+            catState.currentPage -= 1;
+            renderCategory(categoryId);
+          }
+        });
+        pagEl.appendChild(prevBtn);
+
+        for (let p = 1; p <= totalPages; p++) {
+          const btn = document.createElement("button");
+          btn.textContent = String(p);
+          if (p === catState.currentPage) {
+            btn.disabled = true;
+          }
+          btn.addEventListener("click", () => {
+            catState.currentPage = p;
+            renderCategory(categoryId);
+          });
+          pagEl.appendChild(btn);
+        }
+
+        const nextBtn = document.createElement("button");
+        nextBtn.textContent = "›";
+        nextBtn.className = "side-btn";
+        nextBtn.disabled = catState.currentPage === totalPages;
+        nextBtn.addEventListener("click", () => {
+          if (catState.currentPage < totalPages) {
+            catState.currentPage += 1;
+            renderCategory(categoryId);
+          }
+        });
+        pagEl.appendChild(nextBtn);
+      }
+    }
+
+    function renderFavorites() {
+      const list = document.getElementById("favorites-list");
+      const countEl = document.getElementById("favorites-count");
+      list.innerHTML = "";
+
+      const favorites = state.favorites;
+      countEl.textContent = `${favorites.length}件`;
+
+      if (favorites.length === 0) {
+        const li = document.createElement("li");
+        li.className = "small";
+        li.textContent = "お気に入りはまだありません。";
+        list.appendChild(li);
+        return;
+      }
+
+      favorites.forEach(f => {
+        const li = document.createElement("li");
+
+        const main = document.createElement("div");
+        main.className = "fav-main";
+        const link = document.createElement("a");
+        link.href = f.link;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.textContent = f.title || "(無題)";
+
+        const meta = document.createElement("div");
+        meta.className = "fav-meta-line";
+        const catLabel = CATEGORIES[f.categoryId]?.label || f.categoryId;
+        meta.textContent = `${catLabel} ／ ${formatDate(f.pubDate)}`;
+
+        main.appendChild(link);
+        main.appendChild(meta);
+
+        const btn = document.createElement("button");
+        btn.textContent = "削除";
+        btn.addEventListener("click", () => {
+          removeFavoriteByLink(f.link);
+        });
+
+        li.appendChild(main);
+        li.appendChild(btn);
+        list.appendChild(li);
+      });
+    }
+
+    function syncFavoriteCheckboxes() {
+      const allCheckboxes = document.querySelectorAll(".favorite-toggle");
+      allCheckboxes.forEach(cb => {
+        const link = cb.dataset.link;
+        cb.checked = state.favorites.some(f => f.link === link);
+      });
+    }
+
+    // ===== お気に入り操作 =====
+    function addFavorite(item) {
+      if (!item || !item.link) return;
+      if (state.favorites.some(f => f.link === item.link)) return;
+      state.favorites.push(item);
+      saveFavorites();
+      renderFavorites();
+      syncFavoriteCheckboxes();
+    }
+
+    function removeFavoriteByLink(link) {
+      const idx = state.favorites.findIndex(f => f.link === link);
+      if (idx === -1) return;
+      state.favorites.splice(idx, 1);
+      saveFavorites();
+      renderFavorites();
+      syncFavoriteCheckboxes();
+    }
+
+    function clearAllFavorites() {
+      if (!confirm("お気に入りをすべて削除しますか？")) return;
+      state.favorites = [];
+      saveFavorites();
+      renderFavorites();
+      syncFavoriteCheckboxes();
+    }
+
+    // ===== フィード取得 =====
+    async function fetchCategory(categoryId) {
+      const category = CATEGORIES[categoryId];
+      const panel = getPanelElement(categoryId);
+      const statusEl = panel.querySelector(".status");
+      const errorEl = panel.querySelector(".error");
+      const lastUpdatedEl = panel.querySelector(".last-updated");
+
+      statusEl.textContent = "読込中...";
+      errorEl.textContent = "";
+
+      try {
+        const query = category.query || category.defaultQuery;
+        const rssUrl = buildGoogleNewsRss(query);
+        const url = buildFeedUrl(rssUrl);
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`HTTPエラー: ${res.status}`);
+        }
+        const data = await res.json();
+        const items = Array.isArray(data.items) ? data.items : [];
+        state.categories[categoryId].items = items.map(it => ({
+          title: it.title,
+          link: it.link,
+          pubDate: it.pubDate,
+          categoryId
+        }));
+        state.categories[categoryId].currentPage = 1;
+        statusEl.textContent =
+          items.length === 0 ? "記事がありません" : `取得件数: ${items.length}件`;
+        lastUpdatedEl.textContent = new Date().toLocaleString("ja-JP");
+        renderCategory(categoryId);
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = "取得に失敗しました";
+        errorEl.textContent = `エラー: ${err.message}`;
+      }
+    }
+
+    async function fetchAllCategories() {
+      await Promise.all(Object.keys(CATEGORIES).map(fetchCategory));
+    }
+
+    // ===== 初期化 =====
+    window.addEventListener("DOMContentLoaded", () => {
+      // カテゴリ設定読み込み
+      loadCategorySettings();
+
+      // タイトルラベル＆入力欄に反映
+      Object.keys(CATEGORIES).forEach(id => {
+        const panel = getPanelElement(id);
+        if (!panel) return;
+
+        const titleLabel = panel.querySelector("[data-title-label]");
+        if (titleLabel) {
+          titleLabel.textContent = CATEGORIES[id].label;
+        }
+
+        const titleInput = panel.querySelector(".config-title-input");
+        const queryInput = panel.querySelector(".config-query-input");
+        if (titleInput) {
+          titleInput.value = CATEGORIES[id].label;
+        }
+        if (queryInput) {
+          queryInput.value = CATEGORIES[id].query || CATEGORIES[id].defaultQuery;
+        }
+      });
+
+      // カテゴリ設定の更新ボタン
+      document.querySelectorAll(".config-update-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.categoryId;
+          const panel = getPanelElement(id);
+          if (!panel) return;
+
+          const titleInput = panel.querySelector(".config-title-input");
+          const queryInput = panel.querySelector(".config-query-input");
+          const titleLabel = panel.querySelector("[data-title-label]");
+
+          const newTitle = (titleInput?.value || "").trim();
+          const newQuery = (queryInput?.value || "").trim();
+
+          if (newTitle) {
+            CATEGORIES[id].label = newTitle;
+            if (titleLabel) {
+              titleLabel.textContent = newTitle;
+            }
+          }
+          if (newQuery) {
+            CATEGORIES[id].query = newQuery;
+          }
+
+          saveCategorySettings();
+          fetchCategory(id); // 新しい条件で取得
+        });
+      });
+
+      // 手動更新ボタン（再読み込み）
+      document.querySelectorAll(".refresh-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.categoryId;
+          fetchCategory(id); // 設定はそのまま、ニュースだけ更新
+        });
+      });
+
+      // お気に入り
+      loadFavorites();
+      renderFavorites();
+      document
+        .getElementById("clear-favorites-btn")
+        .addEventListener("click", clearAllFavorites);
+
+      // 初回取得
+      fetchAllCategories();
+
+      // 3時間ごとに自動更新
+      setInterval(fetchAllCategories, AUTO_REFRESH_INTERVAL_MS);
+    });
+  </script>
+</body>
+</html>
