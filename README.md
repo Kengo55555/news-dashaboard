@@ -128,5 +128,55 @@ GitHub: https://github.com/Kengo55555
 </body>
 </html>
 
+📄 docs/style.css
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: #f7f7f7;
+  color: #333;
+}
+
+header {
+  background: #4c6ef5;
+  color: white;
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+main {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+section {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+  box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+.btn {
+  display: inline-block;
+  background: #4c6ef5;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: bold;
+}
+.btn:hover {
+  background: #3b5bdb;
+}
+
+footer {
+  text-align: center;
+  padding: 1rem;
+  color: #888;
+}
+
 
 
